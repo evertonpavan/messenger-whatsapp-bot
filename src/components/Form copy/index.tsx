@@ -569,7 +569,7 @@ function Form() {
                                 direction={'column'}
                                 gap={'1rem'}
                                 as={'button'}
-                                onClick={() => refetchGenerateQRCode()}
+                                // onClick={() => refetchGenerateQRCode()}
                               >
                                 <Text color={'red.500'}>
                                   {qrCode.message}

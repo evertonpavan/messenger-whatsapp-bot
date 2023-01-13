@@ -63,17 +63,26 @@ function Form() {
       socket.emit('request_orders');
     });
 
-    socket.on('orders_updated', (orders) => {
-      console.log('updating')
+    socket.on('qrCode', (data) => {
+      console.log('updating', data)
+      const { qrCode } = data;
+      setQrCode(qrCode)
+    })
+
+    socket.on('connectionStatus', (data) => {
+      console.log('updating', data)
+      const { connectionStatus } = data;
+      setConnectionStatus(connectionStatus)
     })
 
     socket.on('disconnect', () => {
       console.error('Ops, something went wrong');
     });
-
-
-
   }, [])
+
+  const [qrCode, setQrCode] = useState<string | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<boolean>(false);
+
 
   const [step, setStep] = useState(1);
 
@@ -154,7 +163,6 @@ function Form() {
     setMessage(null)
     setSuccessMessage(null)
     setData(null)
-    queryClient.invalidateQueries(['generateQRCOde'])
 
     const { type, name } = event.target.files[0];
 
@@ -256,6 +264,7 @@ function Form() {
       return new Promise<void>(async (resolve) => {
         setTimeout(() => {
           setLoadinghandleSubmitData.off()
+          setStep(3)
           resolve()
           // refetch();
         }, 2000);
@@ -297,6 +306,8 @@ function Form() {
   );
 
   console.log('step', step)
+  console.log('qrCode', qrCode)
+
 
   return (
     <Flex
@@ -331,7 +342,7 @@ function Form() {
           <Center
             minHeight={'200px'}
           >
-          
+
             {user && authenticated ? (
               <Flex
                 direction={'row'}
@@ -486,7 +497,7 @@ function Form() {
                     type={'submit'}
                     colorScheme={'whatsapp'}
                     onClick={handleCheckFile}
-                    disabled={file && step < 2  ? false : true}
+                    disabled={file && step < 2 ? false : true}
                     isLoading={loading}
                     loadingText={'Checking data file...'}
                     opacity={loading ? 0.5 : 1}
@@ -505,7 +516,7 @@ function Form() {
                       type={'submit'}
                       colorScheme={'green'}
                       onClick={handleSubmitData}
-                      disabled={file ? false : true}
+                      disabled={!qrCode ? false : true}
                       isLoading={loadingHandleSubmitData}
                       loadingText={'Starting...'}
                       opacity={loadingHandleSubmitData ? 0.5 : 1}
@@ -518,7 +529,122 @@ function Form() {
                 </>
               )}
 
-              
+
+              {data && step >= 2 && (
+                <>
+                  <Stack spacing={4} textAlign={'left'} gap={6}>
+                    <>
+                      <Text fontSize={'md'}>
+                        Scan QR Code:
+                      </Text>
+
+
+                      {!qrCode ? (
+                        <Box
+                          style={{ height: "auto", margin: "0 auto", maxWidth: 300, width: "100%" }}
+                        >
+                          <Skeleton startColor='gray.500' endColor='gray.800' width='300px' height='300' />
+                        </Box>
+                      ) : (
+                        <>
+                          {/* {qrCode ? ( */}
+                            <Flex
+                              style={{ height: "auto", margin: "0 auto", maxWidth: 300, width: "100%" }}
+                            >
+                              <QRCode
+                                size={256}
+                                style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                                viewBox={`0 0 256 256`}
+                                value={qrCode}
+                              />
+                            </Flex>
+                          {/* ) : ( */}
+                            {/* <Flex
+                              style={{ height: "300px", margin: "0 auto", maxWidth: 300, width: "100%" }}
+                              // bg={'red.100'}
+                              boxShadow={'lg'}
+                              textAlign={'center'}
+                              // color={'white'}
+                              justifyContent={'center'}
+                              align={'center'}
+                              direction={'column'}
+                              gap={'1rem'}
+                              as={'button'}
+                            // onClick={() => refetchGenerateQRCode()}
+                            >
+                              <Text color={'red.500'}>
+                                {qrCode}
+                              </Text>
+                              <Text>
+                                Try again
+                              </Text>
+                              <RepeatIcon boxSize={10} color={'whatsapp.500'} />
+                            </Flex> */}
+                          {/* )} */}
+
+                        </>
+                      )}
+                    </>
+                  </Stack>
+                </>
+
+             
+
+              )}
+
+              <Text fontSize={'md'}>
+                  Status: {connectionStatus ? 'Connected' : 'Disconnected'}
+              </Text> 
+
+              <Divider />
+
+
+              {/* {connectionStatus  && ( */}
+                <>
+                <Stack spacing={4}>
+                  {resultSending && (
+                    <Flex flexDirection="row" gap={'0.5rem'} justifyContent={'flex-end'}>
+                      <Flex flexDirection="column" textAlign={'right'} >
+                        <p>
+                          <Icon
+                            as={FcPhoneAndroid}
+                          /> {'  '}
+                          Total contacts:
+                        </p>
+
+                        <p>
+                          <Icon
+                            as={FcOk} color={'#22c35e'}
+                          /> {'  '}
+                          Messages sent successfully:
+                        </p>
+                        <p>
+                          <Icon
+                            as={FcHighPriority}
+                          /> {'  '}
+                          Unsent messages:
+                        </p>
+                      </Flex>
+
+                      <Flex flexDirection="column" textAlign={'right'}>
+                        <>
+                          <p>{resultSending.messagesTotal}</p>
+                          <p>{resultSending.messagesSent}</p>
+                          <p>{resultSending.messagesFailed}</p>
+                        </>
+                      </Flex>
+                    </Flex>
+                  )}
+                </Stack>
+              </>
+              {/* )} */}
+
+
+
+
+              {/*  */}
+
+
             </Stack>
           ) : (
             <p>not authenticated</p>
