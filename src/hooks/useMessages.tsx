@@ -8,11 +8,11 @@ const staleTime = 600000
 
 export const useSendMessages= () => {
 
-	return useMutation(async (data: any) => {
+	return useMutation(async (sendMessagesRequest: any) => {
 
-		const response = await sendMessages(data)
+		const data = await sendMessages(sendMessagesRequest)
 
-        return response
+        return data
     }, {
         onSuccess: (data) => {
             return data
