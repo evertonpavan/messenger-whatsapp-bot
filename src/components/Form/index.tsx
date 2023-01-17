@@ -29,18 +29,21 @@ import {
   InputGroup,
   Center,
   Progress,
+  useDisclosure,
+  ListItem,
+  UnorderedList,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { FaWhatsapp } from "react-icons/fa";
 import { useCheckAuthentication, useGenerateQRCode, useSendMessages } from '../../hooks/useMessages';
 import { AlertMessage, IAlertMessageProps } from '../MessageAlert';
-import { CalendarIcon, CheckIcon, CloseIcon, InfoIcon, PhoneIcon, RepeatIcon, ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
+import { CalendarIcon, CheckIcon, CloseIcon, ExternalLinkIcon, InfoIcon, PhoneIcon, RepeatIcon, ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
 import { FcPhoneAndroid, FcOk, FcHighPriority, FcRefresh } from "react-icons/fc";
 import { SpinnerLoading } from '../SpinnerLoading';
 import QRCode from 'react-qr-code';
 import { queryClient } from '../../services/ReactQuery/queryClient';
 import { ISendMessagesResponse } from '../../interfaces/ISendMessagesResponse';
-
+import { VscGithubInverted } from "react-icons/vsc";
 import { useNavigate } from 'react-router-dom';
 import { useLoginAuthentication } from '../../hooks/useAuthentication';
 import * as yup from 'yup';
@@ -49,6 +52,7 @@ import { useForm } from 'react-hook-form';
 import { useAuth } from '../../hooks/useAuth';
 import { FiLogOut } from 'react-icons/fi';
 import socketIO from 'socket.io-client';
+import { ModalData } from '../ModalData';
 
 const { VITE_MESSENGER_SERVER_SOCKET_URL } = import.meta.env;
 
@@ -57,11 +61,14 @@ const { VITE_MESSENGER_SERVER_SOCKET_URL } = import.meta.env;
 function Form() {
   // let navigate = useNavigate();
 
+  const [socketConnected, setSocketConnected] = useState<boolean>(false);
+
   useEffect(() => {
     const socket = socketIO(VITE_MESSENGER_SERVER_SOCKET_URL!);
     socket.on('connect', () => {
       console.log('Connected to socket server');
-      socket.emit('request_orders');
+      setSocketConnected(true);
+      // socket.emit('request_orders');
     });
 
     socket.on('qrCode', (data) => {
@@ -89,11 +96,10 @@ function Form() {
   const [step, setStep] = useState(1);
 
   const { user, authenticated, onSignoutSuccess } = useAuth();
-  // console.log({ user })
 
   const login = useLoginAuthentication()
 
-  const { isLoading: isLoadingLogin } = login
+  // const { isLoading: isLoadingLogin } = login
 
   const [showPassword, setShowPassword] = useState(false);
   const handlePasswordVisibility = () => setShowPassword(!showPassword);
@@ -133,24 +139,24 @@ function Form() {
 
   function handleLogout() {
     onSignoutSuccess();
+    setFile(null);
+    setData(null);
+    setStep(1);
   }
 
-  const [file, setFile] = useState<File>();
-
+  const [file, setFile] = useState<File | null>(null);
   const [message, setMessage] = useState<IAlertMessageProps | null>(null);
-  const [successMessage, setSuccessMessage] = useState<IAlertMessageProps | null>(null);
-  const [sentMessage, setSentMessage] = useState<IAlertMessageProps | null>(null);
-
-  const [data, setData] = useState<any>();
+  const [data, setData] = useState<any | null>(null);
   const [loading, setLoading] = useBoolean()
   const [loadingHandleSubmitData, setLoadinghandleSubmitData] = useBoolean()
-  const [loadingHandleCheckConnectionWhatsapp, setLoadingHandleCheckConnectionWhatsapp] = useBoolean()
 
   const [result, setResult] = useState<ISendMessagesResponse | null>(null);
 
   const sendMessages = useSendMessages()
 
-  const { isLoading } = sendMessages; // remove? testing
+  // const { isLoading } = sendMessages; // remove? testing
+
+  // const { isOpen, onOpen, onClose } = useDisclosure()
 
   const handleUploadFile = (event: any) => {
 
@@ -161,8 +167,8 @@ function Form() {
 
     if (type !== 'application/json' || !name.endsWith('.json')) {
       setMessage({
-        title: 'Erro!',
-        message: 'Formato do arquivo inválido',
+        title: 'Error!',
+        message: 'Invalid file format',
         status: 'error',
       })
 
@@ -246,8 +252,8 @@ function Form() {
     const { status, data: dataResponse } = response
 
     if (status === 200) {
-      setSentMessage({
-        title: 'OK!',
+      setMessage({
+        title: 'Done!',
         message: 'Sending messages has ended!',
         status: 'success',
       })
@@ -293,11 +299,11 @@ function Form() {
   );
 
 
+  console.log('step', step);
+
   return (
     <Flex
       minH={'100vh'}
-      // mt={'5rem'}
-      // justify={'center'}
       justifyContent={'left'}
       bg={useColorModeValue('gray.50', 'gray.800')}
       gap={'5rem'}
@@ -306,15 +312,31 @@ function Form() {
 
       <Stack spacing={2} mx={'auto'} maxW={'lg'} py={4} px={6} minWidth={'22.5rem'}>
         <Stack align={'center'}>
-          <Heading fontSize={'3xl'}>Messenger Whatsapp Bot</Heading>
+          <Flex
+            width={'100%'}
+            direction={'row'}
+            justifyContent={'right'}
+            alignContent={'right'}
+            mb={'1rem'}
+          >
+            <Link href='https://chakra-ui.com'isExternal>
+              <Icon as={VscGithubInverted} boxSize={6} />
+            </Link>
+          </Flex>
+          <Heading fontSize={'3xl'}>JSON to Whatsapp Web</Heading>
           <Text fontSize={'lg'} color={'gray.600'}>
-            send a bunch of messages on <Link color={'#22c35e'}>whatsapp </Link>
+            send a bunch of messages on
+            <Link 
+            color={socketConnected ? '#22c35e' : 'gray'}
+            >
+              {' '} whatsapp {' '}
+            </Link>
             <Icon
-              as={FaWhatsapp} color={'#22c35e'}
+              as={FaWhatsapp} 
+              color={socketConnected ? '#22c35e' : 'gray'}
             />
           </Text>
         </Stack>
-        {/* <Box */}
         <Stack spacing={8}
           rounded={'lg'}
           bg={useColorModeValue('white', 'gray.700')}
@@ -326,29 +348,42 @@ function Form() {
           <Center
             minHeight={'200px'}
           >
-
             {user && authenticated ? (
-              <Flex
-                direction={'row'}
-                alignItems={'center'}
-                justify={'center'}
-                // boxShadow={'md'}
-                margin={'0 0 2rem 0'}
-                gap={'2rem'}
-                w={'100%'}
-              >
-                <Text>Welcome, {user.name}!</Text>
-                <Button
-                  type={'button'}
-                  leftIcon={<FiLogOut />}
-                  variant={'ghost'}
-                  colorScheme={'blackAlpha'}
-                  onClick={() => handleLogout()}
+              <>
+               <Flex
+                  direction={'column'}
+                  textAlign={'left'}
+                  w={'100%'}
                 >
-
-                </Button>
-
-              </Flex>
+                <Flex
+                  direction={'row'}
+                  alignItems={'center'}
+                  justify={'center'}
+                  // boxShadow={'md'}
+                  margin={'0 0 2rem 0'}
+                  gap={'2rem'}
+                  w={'100%'}
+                >
+                  <Text fontSize=''>Welcome, <strong>{user.name}</strong>!</Text>
+                  <Button
+                    type={'button'}
+                    leftIcon={<FiLogOut />}
+                    variant={'ghost'}
+                    colorScheme={'blackAlpha'}
+                    onClick={() => handleLogout()}
+                  >
+                  </Button>
+                </Flex>
+                <Stack w={'100%'}>
+                  <Text>Follow the three simple steps below:</Text>
+                    <UnorderedList pl={'1.2rem'}>
+                      <ListItem>Upload a JSON file</ListItem>
+                      <ListItem>Click on START</ListItem>
+                      <ListItem>Scan the QR Code</ListItem>
+                    </UnorderedList>
+                </Stack>
+                </Flex>
+              </>
             ) : (
               <Stack spacing={8} minWidth={'22.5rem'}>
                 <form
@@ -370,15 +405,6 @@ function Form() {
                             color: 'gray.500',
                           }}
                         />
-                        {/* {message && (
-                    <FormHelperText>
-                      <AlertMessage
-                        title={message?.title}
-                        message={message?.message}
-                        status={message?.status || 'info'}
-                        icon={''}
-                      />
-                    </FormHelperText> */}
 
                         {errors.user && (
                           <FormErrorMessage
@@ -439,7 +465,6 @@ function Form() {
                     isLoading={isSubmitting}
                     loadingText='Autenticando...'
                     opacity={isSubmitting ? 0.5 : 1}
-                  // opacity={isLoadingLogin ? 0.5 : 1}
                   >
                     Login
                   </Button>
@@ -454,8 +479,8 @@ function Form() {
             <Stack spacing={8} minWidth={'22.5rem'}>
               <form encType="multipart/form">
                 <FormControl id="file">
-                  <Flex flexDirection="column" gap={'0rem'}>
-                    <FormLabel>Choose a file:</FormLabel>
+                  <Flex flexDirection="column" gap={'0.5rem'} alignContent={'center'}>
+                    <FormLabel m={0}>Choose a file:</FormLabel>
                     <Input
                       type="file"
                       onChange={handleUploadFile}
@@ -468,21 +493,17 @@ function Form() {
                         mt={'1rem'}
                         type={'button'}
                         colorScheme={'whatsapp'}
-                        // onChange={handleUploadFile}
-                        // isLoading={loading}
-                        // loadingText={'Checking data file...'}
-                        // opacity={loading ? 0.5 : 1}
+                        isLoading={loading}
+                        loadingText={'Checking data file...'}
+                        opacity={loading ? 0.5 : 1}
                         disabled={loading || step > 1 ? true : false}
                         as={'span'}
                         width={'100%'}
                       >
                         Upload
                       </Button>
-
                     </label>
-                    {file && (
-                      <Text mt={'0.5rem'}>file: {file?.name}</Text>
-                    )}
+
                     {message && (
                       <FormHelperText>
                         <AlertMessage
@@ -493,6 +514,15 @@ function Form() {
                         />
                       </FormHelperText>
                     )}
+
+                    {file && !loading && (
+                        <ModalData
+                          label={`file: ${file.name}`}
+                          data={data}
+                        />
+                    )}
+
+                   
 
                   </Flex>
                 </FormControl>
@@ -527,7 +557,7 @@ function Form() {
                       loadingText={'Starting...'}
                       opacity={loadingHandleSubmitData ? 0.5 : 1}
                     >
-                      Start 
+                      {result ? 'Done' : 'Start'} 
                     </Button>
                   </Stack>
 
@@ -536,14 +566,13 @@ function Form() {
              )}
 
 
-              {data && step >= 2 && (
+              {data && step >= 3 && (
                 <>
                   <Stack spacing={4} textAlign={'left'} gap={6}>
                     <>
                       <Text fontSize={'md'}>
                         Scan QR Code:
                       </Text>
-
 
                       {!qrCode ? (
                         <Box
@@ -641,19 +670,29 @@ function Form() {
                       <Progress hasStripe isIndeterminate={result ? false : true} size='xs' colorScheme={'whatsapp'} />
                     )}
 
-                    {step >= 5 && result && (
-                      <p>Done!</p>
+                    {step >= 5 && result && message && (
+                          <AlertMessage
+                            title={message?.title}
+                            message={message?.message}
+                            status={message?.status || 'info'}
+                            icon={''}
+                          />
                     )}
                   </Stack>
                 </>
               )}
 
-              {/* {step === 5 && ( */}
+              {step === 5 && (
               <Stack spacing={10}>
                 <Button
                   type={'submit'}
                   colorScheme={'blackAlpha'}
-                //  onClick={handleSubmitData}
+                  onClick={() => {
+                    setFile(null);
+                    setData(null);
+                    setStep(1);
+                    setMessage(null)
+                  }}
                 //  disabled={!qrCode ? false : true}
                 //  isLoading={loadingHandleSubmitData}
                 //  loadingText={'Starting...'}
@@ -661,10 +700,10 @@ function Form() {
                   Upload another file
                 </Button>
               </Stack>
-              {/* )} */}
+              )} 
             </Stack>
           ) : (
-            <p>not authenticated</p>
+            <></>
           )}
 
 
