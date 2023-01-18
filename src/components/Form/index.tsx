@@ -29,22 +29,18 @@ import {
   InputGroup,
   Center,
   Progress,
-  useDisclosure,
   ListItem,
   UnorderedList,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { FaWhatsapp } from "react-icons/fa";
-import { useCheckAuthentication, useGenerateQRCode, useSendMessages } from '../../hooks/useMessages';
+import { useSendMessages } from '../../hooks/useMessages';
 import { AlertMessage, IAlertMessageProps } from '../MessageAlert';
-import { CalendarIcon, CheckIcon, CloseIcon, ExternalLinkIcon, InfoIcon, PhoneIcon, RepeatIcon, ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
-import { FcPhoneAndroid, FcOk, FcHighPriority, FcRefresh } from "react-icons/fc";
-import { SpinnerLoading } from '../SpinnerLoading';
+import { RepeatIcon, ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
+import { FcPhoneAndroid, FcOk, FcHighPriority } from "react-icons/fc";
 import QRCode from 'react-qr-code';
-import { queryClient } from '../../services/ReactQuery/queryClient';
 import { ISendMessagesResponse } from '../../interfaces/ISendMessagesResponse';
 import { VscGithubInverted } from "react-icons/vsc";
-import { useNavigate } from 'react-router-dom';
 import { useLoginAuthentication } from '../../hooks/useAuthentication';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -75,6 +71,7 @@ function Form() {
       console.log('updating', data)
       const { qrCode } = data;
       setQrCode(qrCode)
+      setLoadingGenerateQRCode.off()
     })
 
     socket.on('connectionStatus', (data) => {
@@ -90,7 +87,12 @@ function Form() {
     });
   }, [])
 
-  const [qrCode, setQrCode] = useState<string | null>(null);
+  interface IQRCodeResponse {
+    qrCode?: string;
+    message?: string;
+  }
+
+  const [qrCode, setQrCode] = useState<IQRCodeResponse | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<boolean>(false);
 
   const [step, setStep] = useState(1);
@@ -149,6 +151,8 @@ function Form() {
   const [data, setData] = useState<any | null>(null);
   const [loading, setLoading] = useBoolean()
   const [loadingHandleSubmitData, setLoadinghandleSubmitData] = useBoolean()
+  const [loadingGenerateQRCode, setLoadingGenerateQRCode] = useBoolean()
+
 
   const [result, setResult] = useState<ISendMessagesResponse | null>(null);
 
@@ -243,6 +247,8 @@ function Form() {
 
     setLoadinghandleSubmitData.on()
 
+    setLoadingGenerateQRCode.on()
+
     setStep(3)
 
     const response = await sendMessages.mutateAsync({
@@ -272,8 +278,9 @@ function Form() {
 
     return new Promise<void>(async (resolve) => {
       setTimeout(() => {
-        setLoadinghandleSubmitData.off()
-        resolve()
+        setLoadinghandleSubmitData.off();
+        setLoadingGenerateQRCode.off();
+        resolve();
         // refetch();
       }, 2000);
     });
@@ -298,8 +305,10 @@ function Form() {
     }
   );
 
-
   console.log('step', step);
+  console.log('qrCode', qrCode);
+  console.log('loadingGenerateQRCode', loadingGenerateQRCode);
+
 
   return (
     <Flex
@@ -374,13 +383,14 @@ function Form() {
                   >
                   </Button>
                 </Flex>
-                <Stack w={'100%'}>
+                <Stack w={'auto'} m={'0'} p={0}>
                   <Text>Follow the three simple steps below:</Text>
                     <UnorderedList pl={'1.2rem'}>
                       <ListItem>Upload a JSON file</ListItem>
                       <ListItem>Click on START</ListItem>
                       <ListItem>Scan the QR Code</ListItem>
                     </UnorderedList>
+                  <Text>After that, just wait, the messages will be sent automatically.</Text>
                 </Stack>
                 </Flex>
               </>
@@ -504,7 +514,7 @@ function Form() {
                       </Button>
                     </label>
 
-                    {message && (
+                    {step === 1 && message && (
                       <FormHelperText>
                         <AlertMessage
                           title={message?.title}
@@ -574,7 +584,8 @@ function Form() {
                         Scan QR Code:
                       </Text>
 
-                      {!qrCode ? (
+                      {/* {qrCode ? ( */}
+                      {loadingGenerateQRCode ? (
                         <Box
                           style={{ height: "auto", margin: "0 auto", maxWidth: 300, width: "100%" }}
                         >
@@ -582,7 +593,7 @@ function Form() {
                         </Box>
                       ) : (
                         <>
-                          {/* {qrCode ? ( */}
+                          {qrCode && qrCode.qrCode ? (
                           <Flex
                             style={{ height: "auto", margin: "0 auto", maxWidth: 300, width: "100%" }}
                           >
@@ -590,11 +601,11 @@ function Form() {
                               size={256}
                               style={{ height: "auto", maxWidth: "100%", width: "100%" }}
                               viewBox={`0 0 256 256`}
-                              value={qrCode}
+                              value={qrCode?.qrCode || ''}
                             />
                           </Flex>
-                          {/* ) : ( */}
-                          {/* <Flex
+                         ) : ( 
+                           <Flex
                               style={{ height: "300px", margin: "0 auto", maxWidth: 300, width: "100%" }}
                               // bg={'red.100'}
                               boxShadow={'lg'}
@@ -608,15 +619,14 @@ function Form() {
                             // onClick={() => refetchGenerateQRCode()}
                             >
                               <Text color={'red.500'}>
-                                {qrCode}
+                                {qrCode?.message}
                               </Text>
                               <Text>
                                 Try again
                               </Text>
                               <RepeatIcon boxSize={10} color={'whatsapp.500'} />
-                            </Flex> */}
-                          {/* )} */}
-
+                            </Flex> 
+                            )}    
                         </>
                       )}
                     </>
@@ -667,7 +677,7 @@ function Form() {
                       </Flex>
                     </Flex>
                     {step === 4 && (
-                      <Progress hasStripe isIndeterminate={result ? false : true} size='xs' colorScheme={'whatsapp'} />
+                      <Progress hasStripe isIndeterminate={result ? false : true} size='sm' colorScheme={'whatsapp'} />
                     )}
 
                     {step >= 5 && result && message && (
