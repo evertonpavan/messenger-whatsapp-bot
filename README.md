@@ -66,8 +66,9 @@ To get a local copy up and running follow these simple example steps.
 2. Enter to the project directory.
 3. Execute `yarn install` to install the dependencies.
 4. Copy `.env.example` to `.env` and set the environment variables.
+5. ```yarn 
 
-## Docker Compose
+### Docker Compose
 
 1. Follow the [Installation](#installation) procedure.
 2. Update `.env` and set
@@ -106,8 +107,7 @@ You can support the maintainer of this project through the link below:
 
 - [Support via GitHub Sponsors](https://github.com/sponsors/evertonpavan)
 
-Give a :star: if this project helped you!
-
+And give a :star: if this project helped you!
 ## License
 
 MIT
@@ -122,6 +122,6 @@ I can't guarantee or can be held responsible if you get blocked or banned by usi
 
 ## Contact
 
-Email: 
+Email: everton.pavan.dev@gmail.com
 
-LinkedIn:
+LinkedIn: [evertonpavan](https://www.linkedin.com/in/evertonpavan/) 
