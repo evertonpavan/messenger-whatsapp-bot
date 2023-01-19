@@ -371,12 +371,14 @@ function Form() {
             />
           </Text>
         </Stack>
-        <Stack spacing={8}
+        <Stack 
+          spacing={8}
           rounded={'lg'}
           bg={useColorModeValue('white', 'gray.700')}
           boxShadow={'lg'}
           p={8}
           minH={'80vh'}
+          maxWidth={'26rem'}
         >
           {/* login */}
           <Center
@@ -407,16 +409,16 @@ function Form() {
                     onClick={() => handleLogout()}
                   >
                   </Button>
-                </Flex>
-                <Stack w={'auto'} m={'0'} p={0}>
-                  <Text>Follow the three simple steps below:</Text>
+                  </Flex>
+                  <Stack>
+                    <Text>Follow the three simple steps below:</Text>
                     <UnorderedList pl={'1.2rem'}>
                       <ListItem>Upload a JSON file</ListItem>
                       <ListItem>Click on START</ListItem>
                       <ListItem>Scan the QR Code</ListItem>
                     </UnorderedList>
-                  <Text>After that, just wait, the messages will be sent automatically.</Text>
-                </Stack>
+                    <Text>After that, just wait, the messages will be sent automatically. 🤩</Text>
+                  </Stack>
                 </Flex>
               </>
             ) : (

@@ -8,6 +8,7 @@ import { CustomRoutes } from './routes';
 import { AuthContext } from './contexts';
 
 const theme = extendTheme({
+  
 })
 
 function App() {

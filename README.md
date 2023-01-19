@@ -66,7 +66,7 @@ To get a local copy up and running follow these simple example steps.
 2. Enter to the project directory.
 3. Execute `yarn install` to install the dependencies.
 4. Copy `.env.example` to `.env` and set the environment variables.
-5. ```yarn 
+5. ```yarn run dev`
 
 ### Docker Compose
 
