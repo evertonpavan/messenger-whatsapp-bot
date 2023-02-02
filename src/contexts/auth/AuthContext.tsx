@@ -1,12 +1,12 @@
 import { createContext, ReactNode, useEffect, useState } from "react";
-import { loginLocalStorage, logoutLocalStorage } from "../../services/auth";
+import { loginLocalStorage, logoutLocalStorage, TOKEN_KEY } from "../../services/auth";
 import { messengerServerAPI } from "../../services/MessengerServerAPI/apiClient";
 
 type AuthContextProps = {
     children: ReactNode;
 }
 
-interface IUser {
+export interface IUser {
     username: string;
     name: string;
     email: string;
@@ -18,11 +18,14 @@ interface IAuthContext {
     authenticated: boolean;
     user: IUser| null;
     token: string | null;
+    socketConnected: boolean;
     setAuthenticated: (authenticated: boolean) => void;
+    setUser: (user: IUser) => void;
     setToken: (token: string) => void;
     onLoginSuccess: (res: any) => Promise<boolean>;
     onLoginFailure: (res: any) => boolean;
     onSignoutSuccess: () => boolean;
+    setSocketConnected: (socketConnected: boolean) => void;
 }
 
 export const intialValue: IAuthContext = {
@@ -30,11 +33,14 @@ export const intialValue: IAuthContext = {
     authenticated: false,
     user: null,
     token: null,
+    socketConnected: false,
     setAuthenticated: () => {},
+    setUser: () => {},
     setToken: () => {},
     onLoginSuccess: () => { return Promise.resolve(false) },
     onLoginFailure: () => { return false},
     onSignoutSuccess: () => { return false},
+    setSocketConnected: () => {},
 }
 
 const AuthContext = createContext<IAuthContext>(intialValue);
@@ -44,11 +50,11 @@ function AuthContextProvider ({ children }: AuthContextProps) {
     const [user, setUser] = useState(intialValue.user);
     const [token, setToken] = useState(intialValue.token);
     const [loading, setLoading] = useState<boolean>(true);
-
+    const [socketConnected, setSocketConnected] = useState(intialValue.socketConnected);
 
     useEffect(() => {
         async function loadStorageData() {
-            const storagedToken = localStorage.getItem('messenger');
+            const storagedToken = localStorage.getItem(TOKEN_KEY);
 
             if (storagedToken) {
                 setToken(storagedToken);
@@ -101,11 +107,14 @@ function AuthContextProvider ({ children }: AuthContextProps) {
                 authenticated,
                 user,
                 token,
+                socketConnected,
                 setAuthenticated,
+                setUser,
                 setToken,
                 onLoginSuccess,
                 onLoginFailure,
                 onSignoutSuccess,
+                setSocketConnected
             }}>
             {children}
         </AuthContext.Provider>

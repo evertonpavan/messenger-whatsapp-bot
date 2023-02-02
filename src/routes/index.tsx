@@ -1,24 +1,16 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SpinnerLoading } from "../components/SpinnerLoading";
-import { Home } from "../pages/Home";
+import { useAuth } from "../hooks/useAuth";
+import { ProtectRoutes } from "./ProtectRoutes";
+import { SignRoutes } from "./SignRoutes";
 
-export const CustomRoutes = () => {
-  return (
-    <BrowserRouter>
-      <Routes>
+export const Routes = () => {
+  const { authenticated, loading } = useAuth();
 
-        <Route path="/" element={<Home />} />
+  if (loading) {
+    return (
+        <SpinnerLoading />
+    );
+  }
 
-        {/* <Route
-          path="*"
-          element={
-            <>
-              <SpinnerLoading />
-              <Navigate to="/login" />
-            </>
-          }
-          /> */}
-      </Routes>
-    </BrowserRouter>
-  );
+  return authenticated ? <ProtectRoutes /> : <SignRoutes />;
 };

@@ -28,8 +28,6 @@ export function SpinnerLoading() {
                     color='red.500'
                     size='xl'
                     position='relative'
-                    // top='50%'
-                    // left='50%'
                     label="Carregando..."
                 />
             </div>

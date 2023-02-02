@@ -1,4 +1,5 @@
 import { IAuthenticationRequest } from '../../interfaces/IAuth';
+import { TOKEN_KEY } from '../auth';
 import { messengerServerAPI } from './apiClient'
 
 type TError = {
@@ -10,6 +11,7 @@ interface ISendMessagesRequest {
     unidade: string;
     mensagem: string;
     contatos: string;
+    sessionId: string;
 }
 
 export async function sendMessages(data: ISendMessagesRequest): Promise<any> {
@@ -89,9 +91,31 @@ export async function authentication({ email, password }: IAuthenticationRequest
             message: "Serviço indisponível",
         } as TError;
         // const reponseError = error as TError;
-        // return {
+        // return {v
         //     message: reponseError.response.data.message,
-        //     status: reponseError.response.status
+        //     status: reponseError.response.statuss
         // }
+    }
+}
+
+export async function profileUser(): Promise<any> {
+    try {
+
+        const storagedToken = localStorage.getItem(TOKEN_KEY);
+
+        messengerServerAPI.defaults.headers.Authorization = `Bearer ${storagedToken}`;
+
+        const response = await messengerServerAPI.get(`/users/profile`);
+
+        const data = { data: response.data, status: response.status }
+
+        return data;
+    } catch (error) {
+        const reponseError = error as TError;
+        // console.log('error', error)
+        return {
+            message: reponseError.response.data.message,
+            status: reponseError.response.status
+        }
     }
 }

@@ -10,10 +10,11 @@ import {
   useDisclosure,
   Button,
 } from '@chakra-ui/react'
+import { IData } from '../../interfaces/IData';
 
 interface IModalProps {
   label: string;
-  data: string[];
+  data: IData;
 }
 
 function ModalData({
@@ -21,6 +22,8 @@ function ModalData({
   data
 }: IModalProps) {
   const { isOpen, onOpen, onClose } = useDisclosure()
+
+
   return (
     <>
       <Button

@@ -1,14 +1,14 @@
 import { Flex } from '@chakra-ui/react'
-import { SendMessage } from '../../components/SendMessage'
+import { LoginForm } from '../../components/LoginForm';
 
-function Home() {
+function Login() {
     return (
         <>
             <Flex>
-                <SendMessage />
+                <LoginForm />
             </Flex >
         </>
     )
 }
 
-export { Home };
+export { Login };

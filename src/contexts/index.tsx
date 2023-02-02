@@ -1,4 +1,5 @@
 import { AuthContextProvider } from "./auth/AuthContext";
+import { StepContextProvider } from "./step/StepContext";
 
 const AuthContext = ({ children }: any) => {
     return (
@@ -8,4 +9,12 @@ const AuthContext = ({ children }: any) => {
     )
 }
 
-export { AuthContext };
+const StepContext = ({ children }: any) => {
+    return (
+        <>
+            <StepContextProvider> {children} </StepContextProvider>
+        </>
+    )
+}
+
+export { AuthContext, StepContext };
